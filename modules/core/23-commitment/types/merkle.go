@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	ics23 "github.com/confio/ics23/go"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ics23 "github.com/cosmos/ics23/go"
 	"github.com/gogo/protobuf/proto"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
