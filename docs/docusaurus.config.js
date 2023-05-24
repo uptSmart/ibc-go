@@ -104,7 +104,7 @@ const config = {
           {
             type: "doc",
             position: "left",
-            // docId: "README",
+            docId: "cosmwasm/intro",
             docsPluginId: "tutorials",
             label: "Tutorials",
           },
