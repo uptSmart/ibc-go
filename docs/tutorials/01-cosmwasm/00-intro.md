@@ -15,3 +15,7 @@ This tutorial is a guide for creating IBC enabled CosmWasm smart contracts. It w
 - Knowledge of [CosmWasm](https://book.cosmwasm.com/)
 
 :::
+
+## Scope
+
+This tutorial will cover setting up a development environment, creating a simple IBC enabled smart contract, and testing it via end-to-end tests (using three separate methods).
