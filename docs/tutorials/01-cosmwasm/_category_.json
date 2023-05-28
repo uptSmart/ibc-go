@@ -1,5 +1,5 @@
 {
-  "label": "Cosmwasm and IBC",
+  "label": "IBC Enabled Smart Contract",
   "position": 1,
-  "link": { "type": "doc", "id": "intro" }
+  "link": null
 }

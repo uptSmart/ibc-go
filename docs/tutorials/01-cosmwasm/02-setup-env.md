@@ -1,7 +1,7 @@
 ---
 title: Set Up Your Work Environment
 sidebar_label: Set Up Your Work Environment
-sidebar_position: 1
+sidebar_position: 2
 slug: /tutorials/cosmwasm/setup-env
 ---
 
