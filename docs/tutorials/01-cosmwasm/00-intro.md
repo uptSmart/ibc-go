@@ -5,11 +5,14 @@ sidebar_position: 0
 slug: /tutorials/cosmwasm/intro
 ---
 
+import HighlightTag from '@site/src/components/HighlightTag';
+import HighlightBox from '@site/src/components/HighlightBox';
+
 # Introduction
 
-This tutorial is a guide for creating IBC enabled CosmWasm smart contracts. It will lead you step by step, and explain relevant concepts along the way.
+<HighlightTag type="ibc-go" version="v7"/> <HighlightTag type="cosmwasm"/>
 
-import HighlightBox from '@site/src/components/HighlightBox';
+This tutorial is a guide for creating IBC enabled CosmWasm smart contracts. It will lead you step by step, and explain relevant concepts along the way.
 
 <HighlightBox type="prerequisite" title="Prerequisites">
 
