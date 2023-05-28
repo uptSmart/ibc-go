@@ -21,6 +21,7 @@ In this section, you can find all you need to install:
 - [Node.js](https://nodejs.org/en/)
 - [wasmd](https://github.com/CosmWasm/wasmd)
 - [Docker](https://www.docker.com/) or [Gaiad Manager](https://github.com/informalsystems/gm)
+- [Visual Studio Code Extensions](#visual-studio-code-extensions)
 
 </HighlightBox>
 
