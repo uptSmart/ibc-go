@@ -1,17 +1,15 @@
 ---
-title: Making an IBC Enabled Counter Smart Contract
-sidebar_label: Making an IBC Enabled Counter Smart Contract
+title: Making an IBC Enabled Smart Contract
+sidebar_label: Making an IBC Enabled Smart Contract
 sidebar_position: 3
-slug: /tutorials/cosmwasm/making-counter-contract
+slug: /tutorials/cosmwasm/making-ibc-contract
 ---
 
 import HighlightBox from '@site/src/components/HighlightBox';
 
-# Making an IBC Enabled Counter Smart Contract
+# Background for Making an IBC Enabled Smart Contract
 
 In the following sections, we will create a simple IBC enabled smart contract which expects to be deployed on two chains that will count the number of times it receives ibc messages. This tutorial is based on the [Cosmwasm IBC Example](https://github.com/0xekez/cw-ibc-example/tree/main) repository, much thanks to [0xekez](https://github.com/0xekez) for the original work.
-
-## Background
 
 To connect two CosmWasm contracts over IBC you must establish an IBC channel between them. CosmWasm smart contracts interact with the IBC protocol as cosmos modules. Recall the [requirements](/main/ibc/overview#what-is-the-interblockchain-communication-protocol-ibc) for a **cosmos module** to interact with IBC:
 
