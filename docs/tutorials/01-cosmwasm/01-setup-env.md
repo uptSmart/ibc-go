@@ -9,7 +9,9 @@ slug: /tutorials/cosmwasm/setup-env
 
 On this page, you can find helpful links to set up your work environment.
 
-:::info
+import HighlightBox from '@site/src/components/HighlightBox';
+
+<HighlightBox type="info" title="Dependencies">
 
 In this section, you can find all you need to install:
 
@@ -20,13 +22,13 @@ In this section, you can find all you need to install:
 - [wasmd](https://github.com/CosmWasm/wasmd)
 - [Docker](https://www.docker.com/) or [Gaiad Manager](https://github.com/informalsystems/gm)
 
-:::
+</HighlightBox>
 
-:::note
+<HighlightBox type="note" title="Note">
 
 On a general note, it is advisable to prepare a separate project folder to keep all your Cosmos exercises.
 
-:::
+</HighlightBox>
 
 ## Rust
 
