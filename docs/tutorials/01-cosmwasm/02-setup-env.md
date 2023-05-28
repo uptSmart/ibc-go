@@ -5,11 +5,11 @@ sidebar_position: 2
 slug: /tutorials/cosmwasm/setup-env
 ---
 
+import HighlightBox from '@site/src/components/HighlightBox';
+
 # Set Up Your Work Environment
 
 On this page, you can find helpful links to set up your work environment.
-
-import HighlightBox from '@site/src/components/HighlightBox';
 
 <HighlightBox type="info" title="Dependencies">
 
