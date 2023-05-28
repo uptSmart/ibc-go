@@ -1,7 +1,7 @@
 ---
 title: Making an IBC Enabled Counter Smart Contract
 sidebar_label: Making an IBC Enabled Counter Smart Contract
-sidebar_position: 2
+sidebar_position: 3
 slug: /tutorials/cosmwasm/making-counter-contract
 ---
 
