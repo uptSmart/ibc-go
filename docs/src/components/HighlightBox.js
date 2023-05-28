@@ -45,10 +45,10 @@ const typeToStyles = {
     darkMode: false,
   },
   synopsis: {
-    color1: "var(--background-color-secondary)",
-    color2: "var(--semi-transparent-color-3)",
+    color1: "#1c1c1c",
+    color2: "#1c1c1c",
     icon: null,
-    darkMode: null,
+    darkMode: true,
   },
   prerequisite: {
     color1: "lightgray",
