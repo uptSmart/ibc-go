@@ -58,6 +58,7 @@ const HighlightTag = ({ type, version }) => {
         color: styles.isBright ? "black" : "white",
         padding: "0.3rem",
         marginBottom: "1rem",
+        marginRight: "0.25rem",
         display: "inline-block",
       }}
     >
