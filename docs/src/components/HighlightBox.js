@@ -115,6 +115,9 @@ function HighlightBox({ type, title, children }) {
     & a {
       color: ${darkMode ? "#85c1e9" : "blue"} !important;
     }
+    & code {
+      background-color: var(--docusaurus-highlighted-code-line-bg);
+    }
   `;
 
   const iconStyles = {
