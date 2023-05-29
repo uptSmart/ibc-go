@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -123,7 +124,6 @@ func (k Keeper) startFlushUpgradeHandshake(
 	proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) error {
-
 	if !collections.Contains(desiredChannelState, []types.State{types.TRYUPGRADE, types.ACKUPGRADE}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, desiredChannelState)
 	}
@@ -150,8 +150,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight,
-		proofCounterpartyChannel,
+		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
@@ -160,13 +159,30 @@ func (k Keeper) startFlushUpgradeHandshake(
 	}
 
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
-	if err := k.connectionKeeper.VerifyChannelUpgrade(ctx, connection, proofHeight, proofUpgrade, channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId, counterpartyUpgrade); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		connection,
+		proofHeight, proofUpgrade,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyUpgrade,
+	); err != nil {
 		return err
 	}
 
-	if !reflect.DeepEqual(proposedUpgradeFields, counterpartyUpgrade.Fields) {
-		k.restoreChannel(portID, channelID)
+	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
+	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
+	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
+		// error on the higher sequence so that both chains synchronize on a fresh sequence
+		maxSequence := max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
+		channel.UpgradeSequence = maxSequence
+		k.SetChannel(ctx, portID, channelID, channel)
+
+		return types.NewErrorReceipt(channel.UpgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgrade, "counterparty chain upgrade sequence != upgrade sequence (%d <= %d)", counterpartyChannel.UpgradeSequence, channel.UpgradeSequence))
+	}
+
+	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
+		return types.NewErrorReceipt(channel.UpgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgrade, "counterparty chain upgrade ordering != self upgrade ordering"))
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
@@ -210,4 +226,13 @@ func (k Keeper) restoreChannel(portID, channelID string) {
 func (k Keeper) pendingInflightPackets(portID, channelID string) []uint64 {
 	// TODO
 	return []uint64{}
+}
+
+// max is a helper function to return the maximum of a and b
+func max(a uint64, b uint64) uint64 {
+	if a > b {
+		return a
+	}
+
+	return b
 }
