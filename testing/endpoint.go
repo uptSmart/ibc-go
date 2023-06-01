@@ -581,15 +581,9 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyChannelID := endpoint.Counterparty.ChannelID
-	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+	proofChannel, proofUpgrade, proofHeight := endpoint.QueryChannelUpgradeProof()
 
-	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
-	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
-	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
-	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
-
-	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), counterpartyPortID, counterpartyChannelID)
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
 	msg := channeltypes.NewMsgChannelUpgradeTry(
@@ -601,11 +595,25 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
 		proofChannel,
 		proofUpgrade,
-		height,
+		proofHeight,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
 	return endpoint.Chain.sendMsgs(msg)
+}
+
+// QueryChannelUpgradeProof returns all the proofs necessary to execute channel UpgradeTry, UpgradeAck or UpgradeOpen.
+// A proof of the counterparty channel and upgrade are returned along with the height of the proof.
+func (endpoint *Endpoint) QueryChannelUpgradeProof() (proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height) {
+	counterpartyChannelID := endpoint.Counterparty.ChannelID
+	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+
+	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
+	proofChannel, proofHeight = endpoint.Counterparty.Chain.QueryProof(channelKey)
+	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
+	proofUpgrade, _ = endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+
+	return proofChannel, proofUpgrade, proofHeight
 }
 
 // SetChannelState sets a channel state
