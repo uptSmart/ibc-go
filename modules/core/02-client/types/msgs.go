@@ -50,7 +50,7 @@ func NewMsgCreateClient(
 func (msg MsgCreateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert signer address into sdk.AccAddress: %v", err)
 	}
 	clientState, err := UnpackClientState(msg.ClientState)
 	if err != nil {
@@ -113,7 +113,7 @@ func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer stri
 func (msg MsgUpdateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert signer address into sdk.AccAddress: %v", err)
 	}
 	clientMsg, err := UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
@@ -181,7 +181,7 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	}
 
 	if clientState.ClientType() != consensusState.ClientType() {
-		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: %s, got: %s",
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client: expected %s, got %s",
 			clientState.ClientType(), consensusState.ClientType())
 	}
 	if len(msg.ProofUpgradeClient) == 0 {
@@ -192,7 +192,7 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert signer address into sdk.AccAddress: %v", err)
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
@@ -238,7 +238,7 @@ func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessa
 func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert signer address into sdk.AccAddress: %v", err)
 	}
 	misbehaviour, err := UnpackClientMessage(msg.Misbehaviour)
 	if err != nil {
@@ -286,7 +286,7 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 // ValidateBasic performs basic checks on a MsgUpdateParams.
 func (msg *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert authority address into sdk.AccAddress: %v", err)
 	}
 	return msg.Params.Validate()
 }

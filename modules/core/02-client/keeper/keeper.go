@@ -263,7 +263,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	// check that height revision matches chainID revision
 	revision := types.ParseChainID(ctx.ChainID())
 	if revision != height.GetRevisionNumber() {
-		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
+		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chain ID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
 	histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
 	if !found {
@@ -284,7 +284,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	tmClient, ok := clientState.(*ibctm.ClientState)
 	if !ok {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client: expected %T, got %T",
 			&ibctm.ClientState{}, tmClient)
 	}
 
@@ -293,7 +293,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 	}
 
 	if ctx.ChainID() != tmClient.ChainId {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid chain-id. expected: %s, got: %s",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid chain ID: expected %s, got %s",
 			ctx.ChainID(), tmClient.ChainId)
 	}
 
@@ -301,29 +301,29 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 
 	// client must be in the same revision as executing chain
 	if tmClient.LatestHeight.RevisionNumber != revision {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "client is not in the same revision as the chain. expected revision: %d, got: %d",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client is not in the same revision as the chain: expected revision %d, got %d",
 			tmClient.LatestHeight.RevisionNumber, revision)
 	}
 
 	selfHeight := types.NewHeight(revision, uint64(ctx.BlockHeight()))
 	if tmClient.LatestHeight.GTE(selfHeight) {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "client has LatestHeight %d greater than or equal to chain height %d",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client has latest height %d greater than or equal to chain height %d",
 			tmClient.LatestHeight, selfHeight)
 	}
 
 	expectedProofSpecs := commitmenttypes.GetSDKSpecs()
 	if !reflect.DeepEqual(expectedProofSpecs, tmClient.ProofSpecs) {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "client has invalid proof specs. expected: %v got: %v",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client has invalid proof specs: expected %v, got %v",
 			expectedProofSpecs, tmClient.ProofSpecs)
 	}
 
 	if err := light.ValidateTrustLevel(tmClient.TrustLevel.ToTendermint()); err != nil {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
+		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid trust level: %v", err)
 	}
 
 	expectedUbdPeriod := k.stakingKeeper.UnbondingTime(ctx)
 	if expectedUbdPeriod != tmClient.UnbondingPeriod {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period: expected %s, got %s",
 			expectedUbdPeriod, tmClient.UnbondingPeriod)
 	}
 
@@ -336,7 +336,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 		// For now, SDK IBC implementation assumes that upgrade path (if defined) is defined by SDK upgrade module
 		expectedUpgradePath := []string{upgradetypes.StoreKey, upgradetypes.KeyUpgradedIBCState}
 		if !reflect.DeepEqual(expectedUpgradePath, tmClient.UpgradePath) {
-			return errorsmod.Wrapf(types.ErrInvalidClient, "upgrade path must be the upgrade path defined by upgrade module. expected %v, got %v",
+			return errorsmod.Wrapf(types.ErrInvalidClient, "upgrade path must be the upgrade path defined by upgrade module: expected %v, got %v",
 				expectedUpgradePath, tmClient.UpgradePath)
 		}
 	}

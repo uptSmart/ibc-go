@@ -30,7 +30,7 @@ func (k Keeper) OnChanOpenInit(
 	version string,
 ) (string, error) {
 	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s, got %s", channeltypes.ORDERED, order)
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s, got %s", channeltypes.Order(channeltypes.ORDERED).String(), order.String())
 	}
 
 	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {

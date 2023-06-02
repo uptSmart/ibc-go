@@ -97,7 +97,7 @@ func ValidateClientType(clientType string) error {
 
 	// IsValidClientID will check client type format and if the sequence is a uint64
 	if !IsValidClientID(smallestPossibleClientID) {
-		return errorsmod.Wrap(ErrInvalidClientType, "")
+		return errorsmod.Wrap(ErrInvalidClientType, "invalid client identifier")
 	}
 
 	if err := host.ClientIdentifierValidator(smallestPossibleClientID); err != nil {

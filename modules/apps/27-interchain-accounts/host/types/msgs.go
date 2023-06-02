@@ -13,7 +13,7 @@ var _ sdk.Msg = (*MsgUpdateParams)(nil)
 func (msg MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert authority address into sdk.AccAddress: %v", err)
 	}
 
 	return msg.Params.Validate()

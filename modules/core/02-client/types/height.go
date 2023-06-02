@@ -140,11 +140,11 @@ func ParseHeight(heightStr string) (Height, error) {
 	}
 	revisionNumber, err := strconv.ParseUint(splitStr[0], 10, 64)
 	if err != nil {
-		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision number. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision number: %v", err)
 	}
 	revisionHeight, err := strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
-		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision height. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision height: %v", err)
 	}
 	return NewHeight(revisionNumber, revisionHeight), nil
 }
@@ -154,7 +154,7 @@ func ParseHeight(heightStr string) (Height, error) {
 func SetRevisionNumber(chainID string, revision uint64) (string, error) {
 	if !IsRevisionFormat(chainID) {
 		return "", errorsmod.Wrapf(
-			ibcerrors.ErrInvalidChainID, "chainID is not in revision format: %s", chainID,
+			ibcerrors.ErrInvalidChainID, "chain ID is not in revision format: %s", chainID,
 		)
 	}
 

@@ -37,12 +37,12 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert relayer address into sdk.AccAddress: %v", err)
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.Payee)
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from payee address")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert payee address into sdk.AccAddress: %v", err)
 	}
 
 	return nil
@@ -80,7 +80,7 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert relayer address into sdk.AccAddress: %v", err)
 	}
 
 	if strings.TrimSpace(msg.CounterpartyPayee) == "" {
@@ -125,7 +125,7 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 
 	// signer check
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert signer address into sdk.AccAddress: %v", err)
 	}
 
 	// enforce relayer is not set

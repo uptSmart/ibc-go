@@ -23,7 +23,7 @@ func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 func (p PacketFee) Validate() error {
 	_, err := sdk.AccAddressFromBech32(p.RefundAddress)
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert refund address into sdk.AccAddress: %v", err)
 	}
 
 	// enforce relayers are not set

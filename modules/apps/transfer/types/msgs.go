@@ -27,7 +27,7 @@ func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
 func (msg MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert authority address into sdk.AccAddress: %v", err)
 	}
 
 	return nil
@@ -92,7 +92,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "recipient address cannot be blank")
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
 }

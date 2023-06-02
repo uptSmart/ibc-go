@@ -36,7 +36,7 @@ func (k Keeper) CreateClient(
 	}
 
 	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
+		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client ID %s with status %s", clientID, status)
 	}
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
@@ -56,13 +56,13 @@ func (k Keeper) CreateClient(
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client ID %s", clientID)
 	}
 
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client ID %s with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
@@ -117,19 +117,19 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 ) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client ID %s", clientID)
 	}
 
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client ID %s with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
 		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
 	); err != nil {
-		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
+		return errorsmod.Wrapf(err, "cannot upgrade client ID %s", clientID)
 	}
 
 	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())

@@ -20,7 +20,7 @@ import (
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
 	subjectClientState, found := k.GetClientState(ctx, p.SubjectClientId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client ID %s", p.SubjectClientId)
 	}
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
@@ -31,7 +31,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 
 	substituteClientState, found := k.GetClientState(ctx, p.SubstituteClientId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client ID %s", p.SubstituteClientId)
 	}
 
 	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
@@ -41,7 +41,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
 	if status := k.GetClientStatus(ctx, substituteClientState, p.SubstituteClientId); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {

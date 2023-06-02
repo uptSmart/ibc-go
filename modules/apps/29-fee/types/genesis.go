@@ -71,22 +71,22 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if _, err := sdk.AccAddressFromBech32(registeredPayee.Relayer); err != nil {
-			return errorsmod.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert relayer address into sdk.AccAddress: %v", err)
 		}
 
 		if _, err := sdk.AccAddressFromBech32(registeredPayee.Payee); err != nil {
-			return errorsmod.Wrap(err, "failed to convert payee address into sdk.AccAddress")
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert payee address into sdk.AccAddress: %v", err)
 		}
 
 		if err := host.ChannelIdentifierValidator(registeredPayee.ChannelId); err != nil {
-			return errorsmod.Wrapf(err, "invalid channel identifier: %s", registeredPayee.ChannelId)
+			return errorsmod.Wrapf(err, "invalid channel ID %s", registeredPayee.ChannelId)
 		}
 	}
 
 	// Validate RegisteredCounterpartyPayees
 	for _, registeredCounterpartyPayee := range gs.RegisteredCounterpartyPayees {
 		if _, err := sdk.AccAddressFromBech32(registeredCounterpartyPayee.Relayer); err != nil {
-			return errorsmod.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert relayer address into sdk.AccAddress: %v", err)
 		}
 
 		if strings.TrimSpace(registeredCounterpartyPayee.CounterpartyPayee) == "" {
@@ -94,14 +94,14 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if err := host.ChannelIdentifierValidator(registeredCounterpartyPayee.ChannelId); err != nil {
-			return errorsmod.Wrapf(err, "invalid channel identifier: %s", registeredCounterpartyPayee.ChannelId)
+			return errorsmod.Wrapf(err, "invalid channel ID %s", registeredCounterpartyPayee.ChannelId)
 		}
 	}
 
 	// Validate ForwardRelayers
 	for _, rel := range gs.ForwardRelayers {
 		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
-			return errorsmod.Wrap(err, "failed to convert forward relayer address into sdk.AccAddress")
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to convert forward relayer address into sdk.AccAddress: %v", err)
 		}
 
 		if err := rel.PacketId.Validate(); err != nil {

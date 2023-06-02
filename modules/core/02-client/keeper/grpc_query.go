@@ -127,7 +127,7 @@ func (k Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
+			errorsmod.Wrapf(types.ErrConsensusStateNotFound, "client ID %s, height %s", req.ClientId, height).Error(),
 		)
 	}
 

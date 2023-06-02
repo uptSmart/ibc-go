@@ -23,7 +23,7 @@ func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterch
 
 	portID, err := icatypes.NewControllerPortID(req.Owner)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "failed to generate portID from owner address: %s", err)
+		return nil, status.Errorf(codes.InvalidArgument, "failed to generate port ID from owner address: %v", err)
 	}
 
 	addr, found := k.GetInterchainAccountAddress(ctx, req.ConnectionId, portID)

@@ -55,7 +55,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if len(bz) == 0 {
-			return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
+			return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client ID %s", clientID)
 		}
 
 		var protoAny codectypes.Any
@@ -101,7 +101,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 	// in GetClientState
 	clientState, ok := clientKeeper.GetClientState(ctx, clientID)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
+		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client ID %s", clientID)
 	}
 
 	_, ok = clientState.(*ibctm.ClientState)
