@@ -9,7 +9,8 @@ import (
 
 const (
 	// EncodingProtobuf defines the protocol buffers proto3 encoding format
-	EncodingProtobuf = "proto3"
+	EncodingProtobuf  = "proto3"
+	EncodingProtoJSON = "protoJSON"
 
 	// TxTypeSDKMultiMsg defines the multi message transaction type supported by the Cosmos SDK
 	TxTypeSDKMultiMsg = "sdk_multi_msg"

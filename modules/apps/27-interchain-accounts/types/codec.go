@@ -53,18 +53,33 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, 
 	return bz, nil
 }
 
+func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+	return DeserializeCosmosTxWithEncoding(cdc, data, EncodingProtobuf)
+}
+
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
 // into a slice of sdk.Msg's. Only the ProtoCodec is supported for message
 // deserialization.
-func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+func DeserializeCosmosTxWithEncoding(binaryCodec codec.BinaryCodec, data []byte, encoding string) ([]sdk.Msg, error) {
 	// only ProtoCodec is supported
-	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errorsmod.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
+	cdc, ok := binaryCodec.(*codec.ProtoCodec)
+	if !ok {
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
 	}
 
 	var cosmosTx CosmosTx
-	if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-		return nil, err
+
+	switch encoding {
+	case EncodingProtobuf:
+		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
+			return nil, err
+		}
+	case EncodingProtoJSON:
+		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
+		}
+	default:
+		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
 	}
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
