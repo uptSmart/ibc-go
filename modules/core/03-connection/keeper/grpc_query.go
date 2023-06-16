@@ -32,7 +32,7 @@ func (k Keeper) Connection(c context.Context, req *types.QueryConnectionRequest)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrap(types.ErrConnectionNotFound, req.ConnectionId).Error(),
+			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection ID %s", req.ConnectionId).Error(),
 		)
 	}
 
@@ -94,7 +94,7 @@ func (k Keeper) ClientConnections(c context.Context, req *types.QueryClientConne
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrap(types.ErrClientConnectionPathsNotFound, req.ClientId).Error(),
+			errorsmod.Wrapf(types.ErrClientConnectionPathsNotFound, "client ID %s", req.ClientId).Error(),
 		)
 	}
 
@@ -120,7 +120,7 @@ func (k Keeper) ConnectionClientState(c context.Context, req *types.QueryConnect
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
+			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection ID %s", req.ConnectionId).Error(),
 		)
 	}
 
@@ -128,7 +128,7 @@ func (k Keeper) ConnectionClientState(c context.Context, req *types.QueryConnect
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client ID %s", connection.ClientId).Error(),
 		)
 	}
 
@@ -154,7 +154,7 @@ func (k Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
+			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection ID %s", req.ConnectionId).Error(),
 		)
 	}
 
@@ -163,7 +163,7 @@ func (k Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client ID %s", connection.ClientId).Error(),
 		)
 	}
 

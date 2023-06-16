@@ -27,7 +27,7 @@ func (k Keeper) ConnOpenInit(
 	versions := types.GetCompatibleVersions()
 	if version != nil {
 		if !types.IsSupportedVersion(types.GetCompatibleVersions(), version) {
-			return "", errorsmod.Wrap(types.ErrInvalidVersion, "version is not supported")
+			return "", errorsmod.Wrapf(types.ErrInvalidVersion, "version %s is not supported", version)
 		}
 
 		versions = []exported.Version{version}
@@ -35,11 +35,11 @@ func (k Keeper) ConnOpenInit(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
+		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client ID %s", clientID)
 	}
 
 	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client with ID %s status is %s", clientID, status)
 	}
 
 	connectionID := k.GenerateConnectionIdentifier(ctx)
@@ -184,14 +184,14 @@ func (k Keeper) ConnOpenAck(
 	// Retrieve connection
 	connection, found := k.GetConnection(ctx, connectionID)
 	if !found {
-		return errorsmod.Wrap(types.ErrConnectionNotFound, connectionID)
+		return errorsmod.Wrapf(types.ErrConnectionNotFound, "connection ID %s", connectionID)
 	}
 
 	// verify the previously set connection state
 	if connection.State != types.INIT {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not INIT (got %s)", connection.State.String(),
+			"expected %s, got %s", types.INIT.String(), connection.State.String(),
 		)
 	}
 

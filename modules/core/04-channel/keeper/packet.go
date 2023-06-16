@@ -30,7 +30,7 @@ func (k Keeper) SendPacket(
 ) (uint64, error) {
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
+		return 0, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	if channel.State != types.OPEN {
@@ -126,7 +126,7 @@ func (k Keeper) RecvPacket(
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", packet.GetDestPort(), packet.GetDestChannel())
 	}
 
 	if channel.State != types.OPEN {
@@ -292,7 +292,7 @@ func (k Keeper) WriteAcknowledgement(
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", packet.GetDestPort(), packet.GetDestChannel())
 	}
 
 	if channel.State != types.OPEN {
@@ -366,7 +366,7 @@ func (k Keeper) AcknowledgePacket(
 	if !found {
 		return errorsmod.Wrapf(
 			types.ErrChannelNotFound,
-			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
+			"port ID (%s), channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
 		)
 	}
 

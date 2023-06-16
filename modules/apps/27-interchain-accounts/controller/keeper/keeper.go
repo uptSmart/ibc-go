@@ -69,7 +69,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel ID %s on port ID %s", channelID, portID)
+		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 	return channel.ConnectionHops[0], nil
 }

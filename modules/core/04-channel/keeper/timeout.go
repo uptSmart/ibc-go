@@ -31,7 +31,7 @@ func (k Keeper) TimeoutPacket(
 	if !found {
 		return errorsmod.Wrapf(
 			types.ErrChannelNotFound,
-			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
+			"port ID (%s), channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
 		)
 	}
 
@@ -140,7 +140,7 @@ func (k Keeper) TimeoutExecuted(
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
 	}
 
 	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
@@ -191,7 +191,7 @@ func (k Keeper) TimeoutOnClose(
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
 	}
 
 	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())

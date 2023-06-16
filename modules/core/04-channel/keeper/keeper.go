@@ -425,7 +425,7 @@ func (k Keeper) GetAllChannels(ctx sdk.Context) (channels []types.IdentifiedChan
 func (k Keeper) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return "", nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id: %s", portID, channelID)
+		return "", nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -455,7 +455,7 @@ func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (exported.Co
 func (k Keeper) GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return "", nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id: %s", portID, channelID)
+		return "", nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	connectionID := channel.ConnectionHops[0]

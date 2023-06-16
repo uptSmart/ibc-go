@@ -35,7 +35,7 @@ func (k Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -169,7 +169,7 @@ func (k Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -402,7 +402,7 @@ func (k Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -521,7 +521,7 @@ func (k Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -533,7 +533,7 @@ func (k Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 		if !found {
 			return nil, status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+				errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 			)
 		}
 	}
@@ -557,7 +557,7 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -569,7 +569,7 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 		if !found {
 			return nil, status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+				errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s), channel ID (%s)", req.PortId, req.ChannelId).Error(),
 			)
 		}
 	}

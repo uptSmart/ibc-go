@@ -109,7 +109,7 @@ func (k Keeper) OnChanOpenConfirm(
 ) error {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel ID %s on port ID %s", channelID, portID)
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	// It is assumed the controller chain will not allow multiple active channels to be created for the same connectionID/portID

@@ -46,7 +46,7 @@ func queryChannelABCI(clientCtx client.Context, portID, channelID string) (*type
 
 	// check if channel exists
 	if len(value) == 0 {
-		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "portID (%s), channelID (%s)", portID, channelID)
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -186,7 +186,7 @@ func queryNextSequenceRecvABCI(clientCtx client.Context, portID, channelID strin
 
 	// check if next sequence receive exists
 	if len(value) == 0 {
-		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "portID (%s), channelID (%s)", portID, channelID)
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	sequence := binary.BigEndian.Uint64(value)
@@ -222,7 +222,7 @@ func queryNextSequenceSendABCI(clientCtx client.Context, portID, channelID strin
 
 	// check if next sequence send exists
 	if len(value) == 0 {
-		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "portID (%s), channelID (%s)", portID, channelID)
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	sequence := binary.BigEndian.Uint64(value)

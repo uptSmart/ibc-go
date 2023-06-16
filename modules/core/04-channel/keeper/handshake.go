@@ -225,7 +225,7 @@ func (k Keeper) ChanOpenAck(
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	if channel.State != types.INIT {
@@ -301,7 +301,7 @@ func (k Keeper) ChanOpenConfirm(
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	if channel.State != types.TRYOPEN {
@@ -381,7 +381,7 @@ func (k Keeper) ChanCloseInit(
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	if channel.State == types.CLOSED {
@@ -437,7 +437,7 @@ func (k Keeper) ChanCloseConfirm(
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s), channel ID (%s)", portID, channelID)
 	}
 
 	if channel.State == types.CLOSED {

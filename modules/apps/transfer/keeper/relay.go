@@ -62,7 +62,7 @@ func (k Keeper) sendTransfer(
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel ID %s on port ID %s", sourceChannel, sourcePort)
+		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s), channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	destinationPort := channel.GetCounterparty().GetPortID()
