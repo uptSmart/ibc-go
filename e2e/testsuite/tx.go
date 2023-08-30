@@ -149,7 +149,7 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
 		fmt.Sprintf("executing gov proposal %d", proposalID),
-		false,
+		true,
 	)
 	s.Require().NoError(err)
 
