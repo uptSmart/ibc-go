@@ -335,8 +335,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 ) (string, error) {
 	versionMetadata, err := types.MetadataFromVersion(upgradeVersion)
 	if err != nil {
-		// fee version is unable to be parsed from upgrade version, disable fee
-		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
 		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeVersion)
@@ -357,8 +355,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 		return "", err
 	}
 
-	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
 	return string(versionBz), nil
 }
 
@@ -366,8 +362,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
-		// fee version is unable to be parsed from upgrade version, disable fee
-		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
 		return im.app.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
@@ -388,31 +382,24 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 		return "", err
 	}
 
-	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
 	return string(versionBz), nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	// If upgrade handshake was initialized with fee enabled it must complete with fee enabled.
-	// If upgrade handshake was initialized with fee disabled it must complete with fee disabled.
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
-			return errorsmod.Wrapf(err, "invalid counterparty version")
-		}
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
+		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
 
-		if versionMetadata.FeeVersion != types.Version {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-		}
-
-		// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-		return im.app.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
+	if versionMetadata.FeeVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-	return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	return im.app.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface

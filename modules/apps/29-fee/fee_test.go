@@ -31,20 +31,19 @@ func (suite *FeeTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.path = NewMockFeePath(suite.chainA, suite.chainB)
+	suite.pathAToC = NewMockFeePath(suite.chainA, suite.chainC)
+}
+
+func NewMockFeePath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
 	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	suite.path = path
 
-	path = ibctesting.NewPath(suite.chainA, suite.chainC)
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	suite.pathAToC = path
+	return path
 }
 
 func TestIBCFeeTestSuite(t *testing.T) {
