@@ -60,7 +60,7 @@ the Wasm contract's bytecode. The required message is `MsgStoreCode` and the byt
 // MsgStoreCode defines the request type for the StoreCode rpc.
 message MsgStoreCode {
   string signer = 1;
-  bytes  code   = 2;
+  bytes  wasm_byte_code = 2;
 }
 ```
 
@@ -70,36 +70,28 @@ submit this message (which is normally the address of the governance module).
 ```go
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
+  if k.GetAuthority() != msg.Signer {
+    return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
+  }
+
   ctx := sdk.UnwrapSDKContext(goCtx)
-
-  if k.authority != msg.Signer {
-    return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
-  }
-
-  codeHash, err := k.storeWasmCode(ctx, msg.Code)
+  codeHash, err := k.storeWasmCode(ctx, msg.WasmByteCode)
   if err != nil {
-    return nil, sdkerrors.Wrap(err, "storing wasm code failed")
+    return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
   }
 
-  ctx.EventManager().EmitEvents(sdk.Events{
-    sdk.NewEvent(
-      clienttypes.EventTypeStoreWasmCode,
-      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
-    ),
-    sdk.NewEvent(
-      sdk.EventTypeMessage,
-      sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-    ),
-  })
+  emitStoreWasmCodeEvent(ctx, codeHash)
 
   return &types.MsgStoreCodeResponse{
-    CodeHash: codeHash,
+    Checksum: codeHash,
   }, nil
 }
 ```
 
-The contract's bytecode is stored in state in an entry indexed by the code hash: `codeHash/{code hash}`. The code hash is simply 
-the hash of the bytecode of the contract.
+The contract's bytecode is not stored in state (it is actually unnecessary and wasteful to do store it, since
+the Wasm VM already stores it and can be queried back, if needed). The code hash is simply the hash of the bytecode
+of the contract and it is stored in state in an entrey with key `codeHashes` that contains a list of the code hashes
+of contracts that have been stored.
 
 ### How light client proxy works?
 
@@ -108,53 +100,53 @@ in JSON format with appropriate environment information. Data returned by the sm
 returned to the caller.
 
 Consider the example of the `VerifyClientMessage` function of `ClientState` interface. Incoming arguments are
-packaged inside a payload object that is then JSON serialized and passed to `callContract`, which execute `WasmVm.Execute` 
+packaged inside a payload object that is then JSON serialized and passed to `callContract`, which executes `WasmVm.Execute` 
 and returns the slice of bytes returned by the smart contract. This data is deserialized and passed as return argument.
 
 ```go
-type (
-  verifyClientMessageInnerPayload struct {
-    ClientMessage clientMessage `json:"client_message"`
-  }
-  clientMessage struct {
-    Header       *Header       `json:"header,omitempty"`
-    Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
-  }
-  verifyClientMessagePayload struct {
-    VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
-  }
-)
+type queryMsg struct {
+	Status               *statusMsg               `json:"status,omitempty"`
+	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`
+	TimestampAtHeight    *timestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
+	VerifyClientMessage  *verifyClientMessageMsg  `json:"verify_client_message,omitempty"`
+	VerifyMembership     *verifyMembershipMsg     `json:"verify_membership,omitempty"`
+	VerifyNonMembership  *verifyNonMembershipMsg  `json:"verify_non_membership,omitempty"`
+	CheckForMisbehaviour *checkForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
+}
 
-// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
-// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+type verifyClientMessageMsg struct {
+	ClientMessage *ClientMessage `json:"client_message"`
+}
+
+// VerifyClientMessage must verify a ClientMessage. 
+// A ClientMessage could be a Header, Misbehaviour, or batch update.
+// It must handle each type of ClientMessage appropriately. 
+// Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+// will assume that the content of the ClientMessage has been verified
+// and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(
-  ctx sdk.Context, 
-  _ codec.BinaryCodec, 
-  clientStore sdk.KVStore, 
+  ctx sdk.Context,
+  _ codec.BinaryCodec,
+  clientStore sdk.KVStore,
   clientMsg exported.ClientMessage
 ) error {
-  clientMsgConcrete := clientMessage{
-    Header:       nil,
-    Misbehaviour: nil,
-  }
-  switch clientMsg := clientMsg.(type) {
-  case *Header:
-    clientMsgConcrete.Header = clientMsg
-  case *Misbehaviour:
-    clientMsgConcrete.Misbehaviour = clientMsg
-  }
-  inner := verifyClientMessageInnerPayload{
-    ClientMessage: clientMsgConcrete,
-  }
-  payload := verifyClientMessagePayload{
-    VerifyClientMessage: inner,
-  }
-  _, err := call[contractResult](ctx, clientStore, &cs, payload)
-  return err
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
+	}
+
+	payload := queryMsg{
+		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
+	}
+	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
+	return err
 }
 ```
+
+### Shared Wasm VM with `x/wasm`
+
+// TODO
 
 ### Global Wasm VM variable
 
@@ -164,6 +156,11 @@ some of the `ClientState` interface functions to initialise a contract, execute 
 the `ClientState` functions do not have access to the 08-wasm keeper, then it has been decided to keep a global pointer variable that
 points to the same instance as the one in the 08-wasm keeper. This global pointer variable is then used in the implementations of
 the `ClientState` functions. 
+
+
+### Global Wasm store key variable 
+
+// TODO
 
 ## Consequences
 
