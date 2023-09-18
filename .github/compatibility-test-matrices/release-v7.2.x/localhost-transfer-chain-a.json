@@ -12,7 +12,7 @@
     "TestMsgTransfer_Localhost"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"

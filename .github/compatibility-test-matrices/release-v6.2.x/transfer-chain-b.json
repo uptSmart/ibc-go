@@ -23,7 +23,7 @@
     "TestMsgTransfer_WithMemo"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"
