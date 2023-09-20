@@ -486,7 +486,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		if testvalues.MemoFeatureReleases.IsSupported(chainBVersion) {
 			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 		} else {
-			s.Require().Equal(int64(0), actualBalance)
+			s.Require().Equal(int64(0), actualBalance.Int64())
 		}
 	})
 }
