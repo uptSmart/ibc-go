@@ -51,7 +51,7 @@ func NewKeeper(
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
-		panic(fmt.Errorf("the Interchain Accounts module account has not been set"))
+		panic("the Interchain Accounts module account has not been set")
 	}
 
 	// set KeyTable if it has not already been set
@@ -239,7 +239,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic(fmt.Errorf("ica/host params are not set in store"))
+		panic("ica/host params are not set in store")
 	}
 
 	var params types.Params

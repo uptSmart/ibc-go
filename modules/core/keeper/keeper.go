@@ -88,7 +88,7 @@ func (k Keeper) Codec() codec.BinaryCodec {
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	if k.Router != nil && k.Router.Sealed() {
-		panic(fmt.Errorf("cannot reset a sealed router"))
+		panic("cannot reset a sealed router")
 	}
 
 	k.PortKeeper.Router = rtr

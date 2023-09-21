@@ -56,7 +56,7 @@ func NewKeeper(
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Errorf("the IBC transfer module account has not been set"))
+		panic("the IBC transfer module account has not been set")
 	}
 	// set KeyTable if it has not already been set
 	if !legacySubspace.HasKeyTable() {
@@ -124,7 +124,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic(fmt.Errorf("transfer params are not set in store"))
+		panic("transfer params are not set in store")
 	}
 
 	var params types.Params

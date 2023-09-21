@@ -1,7 +1,6 @@
 package solomachine
 
 import (
-	fmt "fmt"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -77,7 +76,7 @@ func (cs ClientState) Validate() error {
 
 // ZeroCustomFields is not implemented for solo machine
 func (ClientState) ZeroCustomFields() exported.ClientState {
-	panic(fmt.Errorf("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades."))
+	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
 // Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
