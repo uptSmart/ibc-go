@@ -817,5 +817,5 @@ func getChainImage(chain *cosmos.CosmosChain) string {
 			return c.Image
 		}
 	}
-	panic("unable to find image for chain: " + chain.Config().ChainID)
+	panic(fmt.Errorf("unable to find image for chain: " + chain.Config().ChainID))
 }
