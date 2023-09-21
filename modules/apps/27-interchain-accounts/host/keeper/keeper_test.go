@@ -70,7 +70,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesti
 	case icatypes.EncodingProto3JSON:
 		version = TestVersionWithJSONEncoding
 	default:
-		panic(fmt.Sprintf("unsupported encoding type: %s", encoding))
+		panic(fmt.Errorf("unsupported encoding type: %s", encoding))
 	}
 
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
