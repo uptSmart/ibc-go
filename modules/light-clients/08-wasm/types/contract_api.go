@@ -11,13 +11,13 @@ type instantiateMessage struct {
 	ConsensusState *ConsensusState `json:"consensus_state"`
 }
 
-// queryMsg is used to encode messages that are sent to the contract's query entry point.
+// QueryMsg is used to encode messages that are sent to the contract's query entry point.
 // The json omitempty tag is mandatory since it omits any empty (default initialized) fields from the encoded JSON,
 // this is required in order to be compatible with Rust's enum matching as used in the contract.
 // Only one field should be set at a time.
-type queryMsg struct {
+type QueryMsg struct {
 	Status               *statusMsg               `json:"status,omitempty"`
-	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`
+	ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
 	TimestampAtHeight    *timestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
 	VerifyClientMessage  *verifyClientMessageMsg  `json:"verify_client_message,omitempty"`
 	VerifyMembership     *verifyMembershipMsg     `json:"verify_membership,omitempty"`
@@ -25,23 +25,23 @@ type queryMsg struct {
 	CheckForMisbehaviour *checkForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
 }
 
-// statusMsg is a queryMsg sent to the contract to query the status of the wasm client.
+// statusMsg is a QueryMsg sent to the contract to query the status of the wasm client.
 type statusMsg struct{}
 
-// exportMetadataMsg is a queryMsg sent to the contract to query the exported metadata of the wasm client.
-type exportMetadataMsg struct{}
+// ExportMetadataMsg is a QueryMsg sent to the contract to query the exported metadata of the wasm client.
+type ExportMetadataMsg struct{}
 
-// timestampAtHeightMsg is a queryMsg sent to the contract to query the timestamp at a given height.
+// timestampAtHeightMsg is a QueryMsg sent to the contract to query the timestamp at a given height.
 type timestampAtHeightMsg struct {
 	Height exported.Height `json:"height"`
 }
 
-// verifyClientMessageMsg is a queryMsg sent to the contract to verify a client message.
+// verifyClientMessageMsg is a QueryMsg sent to the contract to verify a client message.
 type verifyClientMessageMsg struct {
 	ClientMessage *ClientMessage `json:"client_message"`
 }
 
-// verifyMembershipMsg is a queryMsg sent to the contract to verify a membership proof.
+// verifyMembershipMsg is a QueryMsg sent to the contract to verify a membership proof.
 type verifyMembershipMsg struct {
 	Height           exported.Height `json:"height"`
 	DelayTimePeriod  uint64          `json:"delay_time_period"`
@@ -51,7 +51,7 @@ type verifyMembershipMsg struct {
 	Value            []byte          `json:"value"`
 }
 
-// verifyNonMembershipMsg is a queryMsg sent to the contract to verify a non-membership proof.
+// verifyNonMembershipMsg is a QueryMsg sent to the contract to verify a non-membership proof.
 type verifyNonMembershipMsg struct {
 	Height           exported.Height `json:"height"`
 	DelayTimePeriod  uint64          `json:"delay_time_period"`
@@ -60,7 +60,7 @@ type verifyNonMembershipMsg struct {
 	Path             exported.Path   `json:"path"`
 }
 
-// checkForMisbehaviourMsg is a queryMsg sent to the contract to check for misbehaviour.
+// checkForMisbehaviourMsg is a QueryMsg sent to the contract to check for misbehaviour.
 type checkForMisbehaviourMsg struct {
 	ClientMessage *ClientMessage `json:"client_message"`
 }
@@ -110,7 +110,7 @@ type statusResult struct {
 	Status exported.Status `json:"status"`
 }
 
-// exportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
+// exportMetadataResult is the expected return type of the ExportMetadataMsg query. It returns the exported metadata of the wasm client.
 type exportMetadataResult struct {
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }

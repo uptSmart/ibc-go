@@ -20,8 +20,8 @@ func NewGenesisState(contracts []Contract) *GenesisState {
 // ExportMetadata exports all the consensus metadata in the client store so they
 // can be included in clients genesis and imported by a ClientKeeper
 func (cs ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
-	payload := queryMsg{
-		ExportMetadata: &exportMetadataMsg{},
+	payload := QueryMsg{
+		ExportMetadata: &ExportMetadataMsg{},
 	}
 
 	ctx := sdk.NewContext(nil, tmproto.Header{Height: 1, Time: time.Now()}, true, nil) // context with infinite gas meter

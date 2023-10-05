@@ -17,7 +17,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec,
 		return false
 	}
 
-	payload := queryMsg{
+	payload := QueryMsg{
 		CheckForMisbehaviour: &checkForMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 

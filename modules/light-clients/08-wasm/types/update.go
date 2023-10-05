@@ -25,7 +25,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
 	}
 
-	payload := queryMsg{
+	payload := QueryMsg{
 		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
 	}
 	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
