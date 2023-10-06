@@ -15,7 +15,7 @@ type WasmEngine interface {
 	// It does the same as StoreCodeUnchecked plus the static checks.
 	StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
-	// Instantiate will create a new contract based on the given codeID.
+	// Instantiate will create a new contract based on the given checksum.
 	// We can set the initMsg (contract "genesis") here, and it then receives
 	// an account and address and can be invoked (Execute) many times.
 	//
@@ -40,7 +40,7 @@ type WasmEngine interface {
 	// valid json-encoded data to return to the client.
 	// The meaning of path and data can be determined by the code. Path is the suffix of the abci.QueryRequest.Path
 	Query(
-		code wasmvm.Checksum,
+		checksum wasmvm.Checksum,
 		env wasmvmtypes.Env,
 		queryMsg []byte,
 		store wasmvm.KVStore,
@@ -76,7 +76,7 @@ type WasmEngine interface {
 	// This can be used so that the (short) code id (hash) is stored in the iavl tree
 	// and the larger binary blobs (wasm and pre-compiles) are all managed by the
 	// rust library
-	GetCode(code wasmvm.Checksum) (wasmvm.WasmCode, error)
+	GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
 
 	// Pin pins a code to an in-memory cache, such that is
 	// always loaded quickly when executed.
