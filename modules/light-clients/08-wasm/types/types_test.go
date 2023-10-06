@@ -42,6 +42,7 @@ type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
+	chainB      *ibctesting.TestChain
 	mockVM      *wasmtesting.MockWasmEngine
 
 	ctx      sdk.Context
@@ -77,6 +78,15 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+}
+
+// SetupTwoWasmChainsWithMockVM sets up two mock cometbft chains with a mock vm.
+func (suite *TypesTestSuite) SetupTwoWasmChainsWithMockVM() {
+	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
+
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
