@@ -144,6 +144,8 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 				ConfigFileOverrides: configFileOverrides,
 				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
 			},
+			NumValidators: &nv,
+			NumFullNodes:  &nf,
 		},
 	})
 
