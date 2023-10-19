@@ -6,10 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -20,6 +24,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap/zaptest"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -183,8 +189,12 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		_ = ic.Close()
 	})
 
-	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
-	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
 	// Set client contract hash in cosmos chain config
 	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
@@ -316,6 +326,34 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 type GetCodeQueryMsgResponse struct {
 	Data []byte `json:"data"`
 }
+
+// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContent io.Reader) string {
+	content, err := io.ReadAll(proposalContent)
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(content)
+	codeHash := hex.EncodeToString(codeHashByte32[:])
+	content, err = testutil.GzipIt(content)
+	s.Require().NoError(err)
+	message := wasmtypes.MsgStoreCode{
+		Signer:      authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		WasmByteCode: content,
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
+
+	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
+	err = chain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
+	codeHashByte32 = sha256.Sum256(getCodeQueryMsgRsp.Data)
+	codeHash2 := hex.EncodeToString(codeHashByte32[:])
+	s.Require().NoError(err)
+	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
+	s.Require().Equal(codeHash, codeHash2)
+
+	return codeHash
+}
+
 
 func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Context, cosmosChain *cosmos.CosmosChain) string {
 	// Set up cosmos user for pushing new wasm code msg via governance
