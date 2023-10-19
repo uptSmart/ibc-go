@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -191,7 +192,7 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		_ = ic.Close()
 	})
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	cosmosWallet := interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), testvalues.StartingTokenAmount, cosmosChain)[0]
 
 	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
