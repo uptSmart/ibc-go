@@ -122,9 +122,9 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 				ChainID: "simd",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "ghcr.io/misko9/ibc-go-simd",
-						Version:    "local",
-						UidGid:     "1025:1025",
+						Repository: "chatton/ibc-go-simd-wasm",
+						Version:    "wasm",
+						UidGid:     "1000:1000",
 					},
 				},
 				Bin:            "simd",
@@ -325,7 +325,7 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 
 	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
 	s.Require().NoError(err, "error fetching initial balance of contract user")
-	s.Require().Equal(math.NewInt(fundAmountForGov), contractUserBalInitial, "initial balance of contract user not expected")
+	s.Require().Equal(math.NewInt(fundAmountForGov).Int64(), contractUserBalInitial.Int64(), "initial balance of contract user not expected")
 
 	proposal := cosmos.TxProposalv1{
 		Metadata: "none",
