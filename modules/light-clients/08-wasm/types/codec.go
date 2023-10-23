@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
@@ -37,21 +38,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec registers the necessary x/ibc 29-fee interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgStoreCode{}, "cosmos-sdk/MsgStoreCode", nil)
+	legacy.RegisterAminoMsg(cdc, &MsgStoreCode{}, "cosmos-sdk/MsgStoreCode")
 }
 
-var (
-	amino = codec.NewLegacyAmino()
-
-	// ModuleCdc references the global x/ibc 29-fee module codec. Note, the codec
-	// should ONLY be used in certain instances of tests and for JSON encoding.
-	//
-	// The actual codec used for serialization should be provided to x/ibc 29-fee and
-	// defined at the application level.
-	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-)
-
-func init() {
-	RegisterLegacyAminoCodec(amino)
-	amino.Seal()
-}
+var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
