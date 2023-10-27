@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -116,7 +117,8 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cdc, cs.CodeHash) {
+	wasmStoreKey := ibcwasm.GetWasmStoreKey()
+	if !HasCodeHash(ctx, cdc, wasmStoreKey, cs.CodeHash) {
 		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
 	}
 

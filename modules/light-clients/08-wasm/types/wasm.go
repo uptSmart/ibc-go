@@ -4,16 +4,14 @@ import (
 	"bytes"
 	"slices"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 // GetCodeHashes returns all the code hashes stored.
-func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
-	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-	store := ctx.KVStore(wasmStoreKey)
+func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec, key storetypes.StoreKey) (CodeHashes, error) {
+	store := ctx.KVStore(key)
 	bz := store.Get([]byte(KeyCodeHashes))
 	if len(bz) == 0 {
 		return CodeHashes{}, nil
@@ -29,16 +27,15 @@ func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
 }
 
 // AddCodeHash adds a new code hash to the list of stored code hashes.
-func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) error {
-	codeHashes, err := GetCodeHashes(ctx, cdc)
+func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, key storetypes.StoreKey, codeHash []byte) error {
+	codeHashes, err := GetCodeHashes(ctx, cdc, key)
 	if err != nil {
 		return err
 	}
 
 	codeHashes.Hashes = append(codeHashes.Hashes, codeHash)
 
-	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-	store := ctx.KVStore(wasmStoreKey)
+	store := ctx.KVStore(key)
 	bz, err := cdc.Marshal(&codeHashes)
 	if err != nil {
 		return err
@@ -51,8 +48,8 @@ func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) error 
 
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
-func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
-	codeHashes, err := GetCodeHashes(ctx, cdc)
+func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, key storetypes.StoreKey, codeHash []byte) bool {
+	codeHashes, err := GetCodeHashes(ctx, cdc, key)
 	if err != nil {
 		return false
 	}

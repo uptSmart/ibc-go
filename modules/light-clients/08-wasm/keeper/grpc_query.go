@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -28,7 +29,8 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 	}
 
 	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
-	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), k.cdc, codeHash) {
+	wasmStoreKey := ibcwasm.GetWasmStoreKey()
+	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), k.cdc, wasmStoreKey, codeHash) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
 	}
 
@@ -46,8 +48,10 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 func (k Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	wasmStoreKey := ibcwasm.GetWasmStoreKey()
+
 	var codeHashes []string
-	storedHashes, err := types.GetCodeHashes(ctx, k.cdc)
+	storedHashes, err := types.GetCodeHashes(ctx, k.cdc, wasmStoreKey)
 	if err != nil {
 		return nil, status.Error(codes.DataLoss, err.Error())
 	}
