@@ -57,11 +57,14 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	}
 	if s.relayers.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
+		fmt.Printf("retrying tx due to relayer: %s\n", user.FormattedAddress())
 		resp, err = s.retryNtimes(broadcastFunc, 5)
 	} else {
 		resp, err = broadcastFunc()
 	}
+	fmt.Printf("resp: %+v\n", resp)
 	s.Require().NoError(err)
+	fmt.Printf("I don't reach here")
 
 	chainA, chainB := s.GetChains()
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))

@@ -579,3 +579,19 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 		TrustedValidators: trustedVals,
 	}, nil
 }
+
+// Temp: recreates the flaky point with minimal setup.
+func (s *ClientTestSuite) TestAccountLookup() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	cosmosChain, _ := s.GetChains()
+
+	t.Run("update client with duplicate misbehaviour header", func(t *testing.T) {
+		user := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+		broadcaster := cosmos.NewBroadcaster(s.T(), cosmosChain)
+		broadcaster.GetFactory(ctx, user)
+	})
+}
