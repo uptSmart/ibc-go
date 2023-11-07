@@ -23,21 +23,21 @@ func (suite *TypesTestSuite) TestUpdateState() {
 	mockHeight := clienttypes.NewHeight(1, 1)
 
 	var (
-		clientMsg   exported.ClientMessage
-		clientStore storetypes.KVStore
+		clientMsg      exported.ClientMessage
+		clientStore    storetypes.KVStore
+		expClientState *types.ClientState
 	)
 
 	testCases := []struct {
-		name           string
-		malleate       func()
-		expPanic       error
-		expHeights     []exported.Height
-		expClientState []byte
+		name       string
+		malleate   func()
+		expPanic   error
+		expHeights []exported.Height
 	}{
 		{
 			"success: no update",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
@@ -68,17 +68,27 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{},
-			nil,
 		},
 		{
 			"success: update client",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				data := []byte("new-client-state-data")
+				expClientState.Data = data
+				clientMsg = &types.ClientMessage{
+					Data: data,
+				}
+
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), msg.UpdateState.ClientMessage.Data)
+					bz := store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(bz)
+					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*types.ClientState)
+					clientState.Data = msg.UpdateState.ClientMessage.Data
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
+
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{mockHeight},
 					}
@@ -95,7 +105,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{mockHeight},
-			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: clientStore prefix does not include clientID",
@@ -103,7 +112,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
 			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a valid clientID: %s", errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", ibctesting.InvalidID)), "failed to retrieve clientID for wasm contract call").Error()),
-			nil,
 			nil,
 		},
 		{
@@ -114,7 +122,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
 			nil,
-			nil,
 		},
 		{
 			"failure: callbackFn returns error",
@@ -124,7 +131,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				})
 			},
 			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
-			nil,
 			nil,
 		},
 	}
@@ -144,20 +150,30 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			tc.malleate()
 
-			clientState := endpoint.GetClientState()
+			//clientState := endpoint.GetClientState()
+			expClientState = endpoint.GetClientState().(*types.ClientState)
+
+			// bz := clientStore.Get(host.ClientStateKey())
+
+			// css, _ := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), endpoint.ClientID)
+			// suite.Require().NotNil(css)
+
+			// var cs types.ClientState
+			// err = suite.chainA.Codec.UnmarshalInterface(bz, &cs)
 
 			var heights []exported.Height
 			updateState := func() {
-				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, clientMsg)
+				heights = expClientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, clientMsg)
 			}
 
 			if tc.expPanic == nil {
 				updateState()
 				suite.Require().Equal(tc.expHeights, heights)
 
-				if tc.expClientState != nil {
-					clientStateBz := clientStore.Get(host.ClientStateKey())
-					suite.Require().Equal(tc.expClientState, clientStateBz)
+				if expClientState != nil {
+					clientState := endpoint.GetClientState()
+					suite.Require().NoError(err)
+					suite.Require().Equal(expClientState, clientState)
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.expPanic.Error(), updateState)

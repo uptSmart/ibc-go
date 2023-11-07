@@ -172,17 +172,17 @@ func (suite *TypesTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState([]byte{0}, wasmtesting.Code, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{0}, wasmtesting.CodeHash[:], clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: types.NewClientState(nil, wasmtesting.Code, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState(nil, wasmtesting.CodeHash[:], clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty data",
-			clientState: types.NewClientState([]byte{}, wasmtesting.Code, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{}, wasmtesting.CodeHash[:], clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
@@ -275,7 +275,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 		{
 			"failure: code hash has not been stored.",
 			func() {
-				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
+				clientState = &types.ClientState{[]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1)}
 			},
 			types.ErrInvalidCodeHash,
 		},
@@ -388,7 +388,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = wasmtesting.MockClientStateBz
+					expClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWasmClientState)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -726,7 +726,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = wasmtesting.MockClientStateBz
+					expClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWasmClientState)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil

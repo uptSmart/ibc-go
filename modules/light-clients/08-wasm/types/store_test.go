@@ -9,6 +9,7 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
@@ -192,19 +193,21 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			mockWasmClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWasmClientState)
+
 			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
 
 			if tc.expPanic == nil {
-				wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz)
+				wrappedStore.Set(prefixedKey, mockWasmClientStateBz)
 
 				expValue := tc.expStore.Get(tc.key)
 
-				suite.Require().Equal(expValue, wasmtesting.MockClientStateBz)
+				suite.Require().Equal(expValue, mockWasmClientStateBz)
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz) })
+				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Set(prefixedKey, mockWasmClientStateBz) })
 			}
 		})
 	}

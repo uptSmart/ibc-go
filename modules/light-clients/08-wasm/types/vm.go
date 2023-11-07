@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -10,10 +11,14 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var VMGasRegister = NewDefaultWasmGasRegister()
@@ -112,7 +117,7 @@ func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -120,9 +125,23 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
 	}
 
+	bz := clientStore.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return result, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client state has been deleted")
+	}
+
+	var clientState ClientState
+	if err := cdc.Unmarshal(bz, &clientState); err != nil {
+		return result, errorsmod.Wrap(clienttypes.ErrInvalidClient, "failed to unmarshal client state bytes into wasm client state")
+	}
+
 	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
+	}
+
+	if err := checkClientState(cdc, clientStore, cs.CodeHash); err != nil {
+		return result, err
 	}
 
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
@@ -205,4 +224,44 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	}
 
 	return env
+}
+
+func checkClientState(cdc codec.BinaryCodec, clientStore storetypes.KVStore, codeHash []byte) error {
+	key := host.ClientStateKey()
+
+	_, ok := clientStore.(*migrateClientWrappedStore)
+	if ok {
+		key = append(subjectPrefix, key...)
+	}
+
+	bz := clientStore.Get(key)
+	if len(bz) == 0 {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client state has been deleted")
+	}
+
+	var protoAny codectypes.Any
+	if err := cdc.Unmarshal(bz, &protoAny); err != nil {
+		return errorsmod.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+	}
+
+	var clientState ClientState
+	if err := cdc.Unmarshal(protoAny.Value, &clientState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "failed to unmarshal client state bytes into wasm client state")
+	}
+
+	// var clientState exported.ClientState
+	// if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+	// 	return errorsmod.Wrap(clienttypes.ErrInvalidClient, "failed to unmarshal client state bytes into wasm client state")
+	// }
+
+	// cs, ok := clientState.(*ClientState)
+	// if !ok {
+	// 	return errorsmod.Wrap(clienttypes.ErrInvalidClient, "failed to unmarshal client state bytes into wasm client state")
+	// }
+
+	if !bytes.Equal(clientState.CodeHash, codeHash) {
+		return errorsmod.Wrap(ErrInvalidCodeHash, "code hash must not change in sudo calls")
+	}
+
+	return nil
 }
