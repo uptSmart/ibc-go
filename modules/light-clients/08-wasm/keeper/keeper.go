@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -94,11 +93,6 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func generateWasmCodeHash(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
-
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
@@ -110,7 +104,11 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// Check to see if store already has codeHash.
-	codeHash := generateWasmCodeHash(code)
+	codeHash, err := types.CreateChecksum(code)
+	// todo: better err msg
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to store contract")
+	}
 	if types.HasCodeHash(ctx, codeHash) {
 		return nil, types.ErrWasmCodeExists
 	}
