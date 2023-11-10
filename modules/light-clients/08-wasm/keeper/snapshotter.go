@@ -68,7 +68,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 
 	ctx := sdk.NewContext(cacheMS, tmproto.Header{}, false, nil)
 
-	codeHashes, err := types.GetAllCodeHashes(ctx)
+	codeHashes, err := ws.keeper.GetAllCodeHashes(ctx)
 	if err != nil {
 		return err
 	}

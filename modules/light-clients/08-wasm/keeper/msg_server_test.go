@@ -14,6 +14,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -180,13 +181,6 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: invalid wasm code hash",
-			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, []byte(ibctesting.InvalidID), []byte("{}"))
-			},
-			types.ErrWasmCodeHashNotFound,
-		},
-		{
 			"failure: invalid client id",
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newCodeHash, []byte("{}"))
@@ -287,7 +281,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 
 	var (
 		msg           *types.MsgRemoveCodeHash
-		expCodeHashes []types.CodeHash
+		expCodeHashes []keeper.CodeHash
 	)
 
 	testCases := []struct {
@@ -300,7 +294,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 
-				expCodeHashes = []types.CodeHash{}
+				expCodeHashes = []keeper.CodeHash{}
 			},
 			nil,
 		},
@@ -309,7 +303,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 
-				expCodeHashes = []types.CodeHash{}
+				expCodeHashes = []keeper.CodeHash{}
 
 				for i := 0; i < 20; i++ {
 					codeHash := sha256.Sum256([]byte{byte(i)})
@@ -355,7 +349,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
-				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+				codeHashes, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllCodeHashes(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 
 				// Check equality of code hashes up to order

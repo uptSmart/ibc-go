@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -109,11 +107,6 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
-	}
-
-	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cs.CodeHash) {
-		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
 	}
 
 	payload := InstantiateMessage{

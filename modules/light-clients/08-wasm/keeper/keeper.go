@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -34,22 +35,29 @@ type Keeper struct {
 	authority string
 }
 
-// NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
-// This constructor function is meant to be used when the chain uses x/wasm
-// and the same Wasm VM instance should be shared with it.
-func NewKeeperWithVM(
+// temp to create wasmvm instance
+func NewWasmVM(wasmConfig types.WasmConfig) ibcwasm.WasmEngine {
+	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
+	if err != nil {
+		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
+	}
+
+	return vm
+}
+
+// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
+// This constructor function is meant to be used when the chain does not use x/wasm
+// and a Wasm VM needs to be instantiated using the provided parameters.
+func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
 	storeService storetypes.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
 ) Keeper {
+
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
-	}
-
-	if vm == nil {
-		panic(errors.New("wasm VM must be not nil"))
 	}
 
 	if storeService == nil {
@@ -69,24 +77,6 @@ func NewKeeperWithVM(
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
-}
-
-// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
-// This constructor function is meant to be used when the chain does not use x/wasm
-// and a Wasm VM needs to be instantiated using the provided parameters.
-func NewKeeperWithConfig(
-	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
-	clientKeeper types.ClientKeeper,
-	authority string,
-	wasmConfig types.WasmConfig,
-) Keeper {
-	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
-	if err != nil {
-		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
-	}
-
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -111,7 +101,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// Check to see if store already has codeHash.
 	codeHash := generateWasmCodeHash(code)
-	if types.HasCodeHash(ctx, codeHash) {
+	if k.HasCodeHash(ctx, codeHash) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -191,4 +181,39 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 	}
 
 	return wasmClientState, nil
+}
+
+// CodeHash is a type alias used for wasm byte code checksums.
+type CodeHash []byte
+
+// GetAllCodeHashes is a helper to get all code hashes from the store.
+// It returns an empty slice if no code hashes are found
+func (k Keeper) GetAllCodeHashes(ctx context.Context) ([]CodeHash, error) {
+	iterator, err := ibcwasm.CodeHashes.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	keys, err := iterator.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	codeHashes := []CodeHash{}
+	for _, key := range keys {
+		codeHashes = append(codeHashes, key)
+	}
+
+	return codeHashes, nil
+}
+
+// HasCodeHash returns true if the given checksum exists in the store and
+// false otherwise.
+func (k Keeper) HasCodeHash(ctx context.Context, codeHash CodeHash) bool {
+	found, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
+	if err != nil {
+		return false
+	}
+
+	return found
 }

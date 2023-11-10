@@ -39,7 +39,7 @@ func (k Keeper) RemoveCodeHash(goCtx context.Context, msg *types.MsgRemoveCodeHa
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !types.HasCodeHash(goCtx, msg.CodeHash) {
+	if !k.HasCodeHash(goCtx, msg.CodeHash) {
 		return nil, types.ErrWasmCodeHashNotFound
 	}
 

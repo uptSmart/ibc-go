@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -132,6 +133,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestNewKeeper() {
+	vm := keeper.NewWasmVM(types.DefaultWasmConfig(""))
+
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -141,12 +144,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{
 			"success",
 			func() {
-				keeper.NewKeeperWithVM(
+				keeper.NewKeeperWithConfig(
 					GetSimApp(suite.chainA).AppCodec(),
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					vm,
 				)
 			},
 			true,
@@ -155,12 +158,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{
 			"failure: empty authority",
 			func() {
-				keeper.NewKeeperWithVM(
+				keeper.NewKeeperWithConfig(
 					GetSimApp(suite.chainA).AppCodec(),
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
-					ibcwasm.GetVM(),
+					vm,
 				)
 			},
 			false,
@@ -169,40 +172,26 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{
 			"failure: nil client keeper",
 			func() {
-				keeper.NewKeeperWithVM(
+				keeper.NewKeeperWithConfig(
 					GetSimApp(suite.chainA).AppCodec(),
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					nil, // client keeper,
+					nil,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					vm,
 				)
 			},
 			false,
 			errors.New("client keeper must be not nil"),
 		},
 		{
-			"failure: nil wasm VM",
-			func() {
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					nil,
-				)
-			},
-			false,
-			errors.New("wasm VM must be not nil"),
-		},
-		{
 			"failure: nil store service",
 			func() {
-				keeper.NewKeeperWithVM(
+				keeper.NewKeeperWithConfig(
 					GetSimApp(suite.chainA).AppCodec(),
-					nil,
+					nil, // store service
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					vm,
 				)
 			},
 			false,
@@ -224,6 +213,122 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					tc.instantiateFn()
 				})
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetCodeHashes() {
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult func(codeHashes []keeper.CodeHash)
+	}{
+		{
+			"success: no contract stored.",
+			func() {},
+			func(codeHashes []keeper.CodeHash) {
+				suite.Require().Len(codeHashes, 0)
+			},
+		},
+		{
+			"success: default mock vm contract stored.",
+			func() {
+				suite.SetupWasmWithMockVM()
+			},
+			func(codeHashes []keeper.CodeHash) {
+				suite.Require().Len(codeHashes, 1)
+				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
+				suite.Require().Equal(keeper.CodeHash(expectedCodeHash[:]), codeHashes[0])
+			},
+		},
+		{
+			"success: non-empty code hashes",
+			func() {
+				suite.SetupWasmWithMockVM()
+
+				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), keeper.CodeHash("codehash"))
+				suite.Require().NoError(err)
+			},
+			func(codeHashes []keeper.CodeHash) {
+				suite.Require().Len(codeHashes, 2)
+				suite.Require().Contains(codeHashes, keeper.CodeHash("codehash"))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			codeHashes, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllCodeHashes(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+			tc.expResult(codeHashes)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestAddCodeHash() {
+	suite.SetupWasmWithMockVM()
+
+	codeHashes, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllCodeHashes(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	// default mock vm contract is stored
+	suite.Require().Len(codeHashes, 1)
+
+	codeHash1 := keeper.CodeHash("codehash1")
+	codeHash2 := keeper.CodeHash("codehash2")
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
+	suite.Require().NoError(err)
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash2)
+	suite.Require().NoError(err)
+
+	// Test adding the same code hash twice
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
+	suite.Require().NoError(err)
+
+	codeHashes, err = GetSimApp(suite.chainA).WasmClientKeeper.GetAllCodeHashes(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Len(codeHashes, 3)
+	suite.Require().Contains(codeHashes, codeHash1)
+	suite.Require().Contains(codeHashes, codeHash2)
+}
+
+func (suite *KeeperTestSuite) TestHasCodeHash() {
+	var codeHash keeper.CodeHash
+
+	testCases := []struct {
+		name       string
+		malleate   func()
+		exprResult bool
+	}{
+		{
+			"success: code hash exists",
+			func() {
+				codeHash = keeper.CodeHash("codehash")
+				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"success: code hash does not exist",
+			func() {
+				codeHash = keeper.CodeHash("non-existent-codehash")
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			tc.malleate()
+
+			result := GetSimApp(suite.chainA).WasmClientKeeper.HasCodeHash(suite.chainA.GetContext(), codeHash)
+			suite.Require().Equal(tc.exprResult, result)
 		})
 	}
 }

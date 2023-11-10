@@ -273,13 +273,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
-			"failure: code hash has not been stored.",
-			func() {
-				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
-			},
-			types.ErrInvalidCodeHash,
-		},
-		{
 			"failure: InstantiateFn returns error",
 			func() {
 				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {

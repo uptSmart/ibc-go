@@ -77,14 +77,6 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			types.ErrWasmCodeExists,
 		},
 		{
-			"failure: code hash not found",
-			func() {
-				err := ibcwasm.CodeHashes.Remove(suite.chainA.GetContext(), newHash[:])
-				suite.Require().NoError(err)
-			},
-			types.ErrWasmCodeHashNotFound,
-		},
-		{
 			"failure: contract returns error",
 			func() {
 				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])

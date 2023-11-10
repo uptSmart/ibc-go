@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+			codeHashes, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllCodeHashes(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
 			for _, hash := range codeHashes {
