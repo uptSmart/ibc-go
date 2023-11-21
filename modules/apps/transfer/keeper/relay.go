@@ -397,6 +397,9 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // the sending address.
 func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
 	// NOTE: packet data type already checked in handler.go
+	if strings.Contains(data.Memo, ":IBCTransferFromERC20") {
+		return nil
+	}
 
 	// parse the denomination from the full denom path
 	trace := types.ParseDenomTrace(data.Denom)
